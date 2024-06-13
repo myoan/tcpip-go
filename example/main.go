@@ -88,7 +88,24 @@ func main() {
 			panic(err)
 		}
 		if rcvBuf[12] == 0x08 && rcvBuf[13] == 0x06 {
+			var frame mynet.EthernetFrame
 			fmt.Printf("receive: %v\n", rcvBuf)
+			err := mynet.UnmarshallEtherFrame(&frame, rcvBuf)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Printf("dst: %s\n", frame.DstMAC())
+			fmt.Printf("src: %s\n", frame.SrcMAC())
+
+			var arp mynet.ArpPacket
+			err = mynet.UnmarshallArpPacket(&arp, frame.Data)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Printf("hwtype: %02X, prtype: %02X, twlen: %02X, prtlen: %02X\n", arp.HardwareType, arp.ProtocolType, arp.HardwareLen, arp.ProtocolLen)
+			fmt.Printf("op: %02X\n", arp.Operation)
+			fmt.Printf("sender: %s\n", arp.SenderHWAddress())
+			fmt.Printf("target: %s\n", arp.TargetHWAddress())
 			break
 		}
 	}
